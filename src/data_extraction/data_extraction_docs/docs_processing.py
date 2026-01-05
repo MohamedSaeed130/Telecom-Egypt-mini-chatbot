@@ -126,9 +126,44 @@ class TelecomEgyptDocumentProcessor:
         }
     
 
+    def save_to_json(self, data: Dict, filename: str):
+        try:
+            existing_data = []
+            if os.path.exists(filename):
+                try:
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        if content.strip():
+                            existing_data = json.loads(content)
+                            if isinstance(existing_data, dict):
+                                existing_data = [existing_data]
+                except json.JSONDecodeError:
+                    pass  # Start with empty list if file is invalid JSON
 
-def docs_main(file_path: str):
+            existing_data.append(data)
+
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(existing_data, f, ensure_ascii=False, indent=2)
+            print(f"Data successfully saved to {filename}")
+        except Exception as e:
+             print(f"Error saving data to JSON: {str(e)}")
+
+    def process_multiple_documents(self, file_paths: List[str], output_filename: str):
+        for file_path in file_paths:
+            try:
+                result = self.process_document(file_path)
+                if result['content']:
+                    self.save_to_json(result, output_filename)
+                else:
+                    print(f"✗ Empty content: {file_path}")
+            except Exception as e:
+                print(f"✗ Failed: {file_path} - {str(e)}")
+        
+        return  
+
+
+def docs_main(file_paths: List[str], output_path: str = None):
     processor = TelecomEgyptDocumentProcessor()
-    return processor.process_document(file_path)
-    
+    processor.process_multiple_documents(file_paths, output_path)
+    return 
 

@@ -90,7 +90,6 @@ class TelecomEgyptScraper:
     def save_to_json(self, filename: str = None):
 
         if filename and filename != self.output_file:
-            # Copy to different filename if requested
             data = self.load_results()
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
