@@ -10,38 +10,22 @@ class TelecomEgyptSpider(CrawlSpider):
     
     name = 'telecom_egypt'
     allowed_domains = ['te.eg', 'www.te.eg']
-    start_urls = ['https://te.eg']
+    start_urls =["https://te.eg"]
     
     # Custom settings for this spider
+    # Note: Conflicting settings (FEEDS, CLOSESPIDER_PAGECOUNT) have been removed to allow control from scrapy_runner.py
     custom_settings = {
-        'CONCURRENT_REQUESTS': 10,  # Number of concurrent requests
-        'DOWNLOAD_DELAY': 0.5,     # Delay between requests (seconds)
-        'ROBOTSTXT_OBEY': True,    # Respect robots.txt
+        'CONCURRENT_REQUESTS': 10,
+        'DOWNLOAD_DELAY': 0.5,
+        'ROBOTSTXT_OBEY': True,
         'DOWNLOADER_MIDDLEWARES': {
             'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
             'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': 400,
         },
-        
-        # Export settings
-        'FEEDS': {
-            'telecom_egypt_data.json': {
-                'format': 'json',
-                'encoding': 'utf8',
-                'indent': 2,
-                'ensure_ascii': False,
-            }
-        },
-        
-        # Retry settings
         'RETRY_TIMES': 3,
         'RETRY_HTTP_CODES': [500, 502, 503, 504, 408, 429],
-        
-        # Timeout settings
         'DOWNLOAD_TIMEOUT': 30,
-        
-        # Memory optimization
-        'DEPTH_LIMIT': 5,  # Maximum crawl depth
-        'CLOSESPIDER_PAGECOUNT': 500,  # Stop after N pages
+        'DEPTH_LIMIT': 5,
     }
     
     # Define crawling rules
@@ -64,14 +48,18 @@ class TelecomEgyptSpider(CrawlSpider):
         ),
     )
     
-    def __init__(self, max_pages=100, *args, **kwargs):
+    def __init__(self, base_url="https://te.eg", max_pages=100, *args, **kwargs):
         super(TelecomEgyptSpider, self).__init__(*args, **kwargs)
         self.max_pages = int(max_pages)
         self.pages_scraped = 0
         self.start_time = time.time()
         
-        # Update custom settings
-        self.custom_settings['CLOSESPIDER_PAGECOUNT'] = self.max_pages
+        # Update start_urls and allowed_domains based on dynamic base_url
+        if base_url:
+            self.start_urls = [base_url]
+            domain = urlparse(base_url).netloc
+            if domain:
+                self.allowed_domains = [domain]
     
     def clean_text(self, text: str) -> str:
         """Clean and normalize text"""
