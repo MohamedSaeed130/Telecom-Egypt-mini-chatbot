@@ -16,7 +16,7 @@ class TelecomEgyptDocumentProcessor:
 
     def process_pdf(self, file_path: str) -> str:
 
-        text = ""
+        text = []
         try:
             # Step 1: Try normal text extraction
             with open(file_path, 'rb') as file:
@@ -24,16 +24,16 @@ class TelecomEgyptDocumentProcessor:
                 for page in pdf_reader.pages:
                     page_text = page.extract_text()
                     if page_text:
-                        text += page_text + "\n"
+                        text.append(page_text + "\n")
 
             # Step 2: If no text found, use OCR
-            if not text.strip():
+            if not text:
                 images = convert_from_path(file_path)
                 for img in images:
                     ocr_text = pytesseract.image_to_string(img)
-                    text += ocr_text + "\n"
+                    text.append(ocr_text + "\n")
 
-            return text.strip()
+            return text
 
         except Exception as e:
             print(f"Error processing PDF {file_path}: {str(e)}")
@@ -56,7 +56,7 @@ class TelecomEgyptDocumentProcessor:
                         if cell.text.strip():
                             text.append(cell.text)
 
-            return "\n".join(text).strip()
+            return text
 
         except Exception as e:
             print(f"Error processing DOCX {file_path}: {str(e)}")
@@ -90,7 +90,7 @@ class TelecomEgyptDocumentProcessor:
             image = Image.open(file_path)
             # Try to extract Arabic and English text
             text = pytesseract.image_to_string(image, lang='ara+eng')
-            return text.strip()
+            return [str(text)]
         except Exception as e:
             print(f"Error processing image {file_path}: {str(e)}")
             return ""
@@ -152,10 +152,15 @@ class TelecomEgyptDocumentProcessor:
         for file_path in file_paths:
             try:
                 result = self.process_document(file_path)
-                if result['content']:
-                    self.save_to_json(result, output_filename)
-                else:
-                    print(f"✗ Empty content: {file_path}")
+                content_list=result['content']
+                for page_number,page_text in enumerate(content_list):
+                    if page_text:
+                        result['content']=page_text
+                        result['content_length']=len(page_text)
+                        result['page_number']=page_number + 1
+                        self.save_to_json(result, output_filename)
+                    else:
+                        print(f"✗ Empty content: {file_path}")
             except Exception as e:
                 print(f"✗ Failed: {file_path} - {str(e)}")
         
