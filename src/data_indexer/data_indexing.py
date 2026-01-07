@@ -62,7 +62,7 @@ class DocumentIndexer:
             data = json.load(f)
 
         documents = []
-        doc_id = self.DB_manager.collection.count()
+        doc_id = self.DB_manager.count(collection_name=self.DB_manager.collection_name)
           
         for page in data:
             chunks = recursive_chunk(page['content'], max_size=chunk_size)
