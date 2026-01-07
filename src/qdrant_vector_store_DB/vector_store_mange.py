@@ -85,7 +85,6 @@ class QdrantVectorStoreManager:
     def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
         Generate embeddings using multilingual-e5-large
-        
         Note: E5 models require prefixing with 'query: ' or 'passage: '
         """
         # For E5 models, prefix with 'passage: ' for documents
@@ -324,32 +323,3 @@ Answer:"""
         self._init_collection()
         print(f"Collection '{self.collection_name}' reset")
     
-    
-
-# Example usage
-if __name__ == "__main__":
-    import os
-    
-    # Initialize with Groq
-    vector_store = QdrantVectorStoreManager(
-        groq_api_key=os.getenv("GROQ_API_KEY")
-    )
-    
-    # Check stats
-    stats = vector_store.get_collection_stats()
-    print("\nCollection Stats:")
-    print(json.dumps(stats, indent=2))
-    
-    # Test search and generation
-    if stats['total_documents'] > 0:
-        query = "What are the internet packages?"
-        print(f"\nQuery: {query}")
-        
-        # Search
-        results = vector_store.search(query, n_results=3)
-        print(f"Found {len(results)} results")
-        
-        # Generate response
-        language = vector_store.detect_language(query)
-        response = vector_store.generate_response(query, results, language=language)
-        print(f"\nResponse:\n{response}")
