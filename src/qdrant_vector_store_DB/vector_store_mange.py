@@ -65,6 +65,14 @@ class QdrantVectorStoreManager:
         
         print(f"✓ Vector store initialized. Collection: {collection_name}")
     
+    def detect_language(self, text: str) -> str:
+        """Detect language of text"""
+        try:
+            lang = detect(text)
+            return lang if lang in ['ar', 'en'] else 'en'
+        except:
+            return "en"
+
     def _init_collection(self):
         """Initialize or get existing collection"""
         collections = self.client.get_collections().collections
@@ -81,6 +89,13 @@ class QdrantVectorStoreManager:
             )
         else:
             print(f"Collection '{self.collection_name}' already exists")
+            
+        # Ensure payload index exists for 'source' field (required for filtering)
+        self.client.create_payload_index(
+            collection_name=self.collection_name,
+            field_name="source",
+            field_schema="keyword",
+        )
     
     def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
@@ -180,14 +195,14 @@ class QdrantVectorStoreManager:
         # Search
         search_results = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_embedding,
+            query=query_embedding,
             limit=n_results,
             query_filter=query_filter
         )
         
         # Format results
         formatted_results = []
-        for result in search_results:
+        for result in search_results.points:
             formatted_results.append({
                 'id': result.payload.get('doc_id', str(result.id)),
                 'content': result.payload.get('content', ''),
@@ -216,6 +231,7 @@ class QdrantVectorStoreManager:
             temperature: Temperature for generation (0-2)
         """
         # Format context
+        language=self.detect_language(query)
         context_parts = []
         for i, doc in enumerate(context_docs, 1):
             metadata = doc['metadata']
@@ -273,7 +289,7 @@ Answer:"""
                         "content": user_prompt
                     }
                 ],
-                model="llama3-70b-8192",  # Llama 3 70B with 8K context
+                model="llama-3.3-70b-versatile",  # Llama 3 70B with 8K context
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=1,
