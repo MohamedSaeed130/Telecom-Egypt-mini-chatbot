@@ -20,12 +20,12 @@ class QdrantVectorStoreManager:
     
     def __init__(self, 
                  collection_name: str = "telecom_egypt_VDB",
-                 persist_directory: str = "./qdrant_db",
+                 persist_directory: str = "qdrant_db",
                  embedding_model_name: str = "intfloat/multilingual-e5-large",
                  use_cloud: bool = False,
                  qdrant_url: Optional[str] = None,
-                 qdrant_api_key: Optional[str] = None,
-                 groq_api_key: Optional[str] = None):
+                 qdrant_api_key: Optional[str] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.g6gizwnNagX1qf8pTgca4xsfDFQm8W5dT-gsbEjd0fM",
+                 groq_api_key: Optional[str] ="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"):
 
 
         self.collection_name = collection_name
@@ -178,7 +178,7 @@ class QdrantVectorStoreManager:
                 query_filter = Filter(must=conditions)
         
         # Search
-        search_results = self.client.search(
+        search_results = self.client.query_points(
             collection_name=self.collection_name,
             query_vector=query_embedding,
             limit=n_results,
