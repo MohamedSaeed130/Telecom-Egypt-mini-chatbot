@@ -14,6 +14,14 @@ class DocumentIndexer:
     def __init__(self, DB_manager: QdrantVectorStoreManager):
         self.DB_manager = DB_manager
     
+    def detect_language(self, text: str) -> str:
+        """Detect language of text"""
+        try:
+            lang = detect(text)
+            return lang if lang in ['ar', 'en'] else 'en'
+        except:
+            return "en"
+    
     def index_scraped_data(self, json_file: str):
 
         print(f"Loading scraped data from {json_file}...")
@@ -34,6 +42,7 @@ class DocumentIndexer:
                     'content': chunk,
                     'metadata': {
                         'source': 'web',
+                        'language': self.detect_language(chunk),
                         'url': page['url'],
                         'title': page['title'],
                         'chunk_index': chunk_idx,
@@ -67,6 +76,7 @@ class DocumentIndexer:
                     'content': chunk,
                     'metadata': {
                         'source': 'upload',
+                        'language': self.detect_language(chunk),
                         'page_number':page['page_number']
                         'filename': page['filename'],
                         'file_type': page['file_type'],
