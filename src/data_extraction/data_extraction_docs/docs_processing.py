@@ -166,9 +166,3 @@ class TelecomEgyptDocumentProcessor:
         
         return  
 
-
-def docs_main(file_paths: List[str], output_path: str = None):
-    processor = TelecomEgyptDocumentProcessor()
-    processor.process_multiple_documents(file_paths, output_path)
-    return 
-
