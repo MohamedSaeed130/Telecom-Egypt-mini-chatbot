@@ -19,5 +19,6 @@ googletrans==4.0.2
 qdrant-client==1.16.2
 grok==6.1
 sentence-transformers==5.2.0
+groq==1.0.0
 
 
