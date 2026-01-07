@@ -3,8 +3,8 @@ import numpy as np
 from langdetect import detect
 import json
 import os
-from ..data_chunking.text_chunker import recursive_chunk
-from ..qdrant_vector_store_DB.vector_store_mange import QdrantVectorStoreManager
+from data_chunking.text_chunker import recursive_chunk
+from qdrant_vector_store_DB.vector_store_mange import QdrantVectorStoreManager
 
 class DocumentIndexer:
     """
@@ -77,7 +77,7 @@ class DocumentIndexer:
                     'metadata': {
                         'source': 'upload',
                         'language': self.detect_language(chunk),
-                        'page_number':page['page_number']
+                        'page_number':page['page_number'],
                         'filename': page['filename'],
                         'file_type': page['file_type'],
                         'chunk_index': chunk_idx,
