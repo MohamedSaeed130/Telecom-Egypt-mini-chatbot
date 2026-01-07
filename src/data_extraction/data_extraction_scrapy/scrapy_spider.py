@@ -125,7 +125,8 @@ class TelecomEgyptSpider(CrawlSpider):
         item = {
             'url': response.url,
             'title': self.clean_text(title or ""),
-            'content': self.clean_text(main_content)
+            'content': self.clean_text(main_content),
+            'content_length':len(self.clean_text(main_content))
         }
         
         yield item
