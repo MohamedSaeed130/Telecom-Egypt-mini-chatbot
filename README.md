@@ -18,6 +18,23 @@ A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answer
 - **Scraping**: [Scrapy](https://scrapy.org/)
 - **Document Processing**: `PyPDF2`, `python-docx`, `BeautifulSoup`
 
+## Project Structure
+
+```
+Telecom-Egypt-mini-chatbot/
+├── src/
+│   ├── data_chunking/          # Text chunking logic
+│   ├── data_extraction/        # Scrapy and Document processing
+│   ├── data_indexer/           # Logic to index data into Qdrant
+│   ├── qdrant_vector_store_DB/ # Qdrant client manager
+│   ├── streamlit_app.py        # Main Streamlit Application UI
+│   ├── main_setup.py           # Script for setup and scraping pipeline
+│   ├── requirements.txt        # Python dependencies
+│   └── qdrant_db/              # Local fallback for vector store
+├── LICENSE                     # License file
+└── README.md                   # Project Documentation
+```
+
 ## Prerequisites
 
 - Python 3.8+
@@ -73,20 +90,5 @@ streamlit run streamlit_app.py
 This will open the application in your browser (usually at `http://localhost:8501`).
 
 
-## Project Structure
 
-```
-Telecom-Egypt-mini-chatbot/
-├── src/
-│   ├── data_chunking/          # Text chunking logic
-│   ├── data_extraction/        # Scrapy and Document processing
-│   ├── data_indexer/           # Logic to index data into Qdrant
-│   ├── qdrant_vector_store_DB/ # Qdrant client manager
-│   ├── streamlit_app.py        # Main Streamlit Application UI
-│   ├── main_setup.py           # Script for setup and scraping pipeline
-│   ├── requirements.txt        # Python dependencies
-│   └── qdrant_db/              # Local fallback for vector store
-├── LICENSE                     # License file
-└── README.md                   # Project Documentation
-```
 
