@@ -1,8 +1,8 @@
-# Telecom-Egypt-mini-chatbot
+# 🤖 Telecom-Egypt-mini-chatbot ![Telecom Egypt Logo](https://www.te.eg/TEStaticThemeResidential8/themes/Portal8.0/css/tedata/images/svgfallback/logo.png) 
 
 A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answers customer questions using the official website as the primary knowledge base.
 
-## Features
+## Key Features
 
 - **Multi-lingual Support**: Handles Arabic (Modern Standard & Egyptian dialect) and English
 - **RAG-Powered**: Uses Retrieval Augmented Generation for accurate, grounded responses
@@ -10,30 +10,83 @@ A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answer
 - **Source Citations**: All answers include references to original sources
 - **Web-Based Interface**: Professional Streamlit chat interface
 
+## Tech Stack
+- **Frontend**: [Streamlit](https://streamlit.io/)
+- **LLM**: [Groq API](https://groq.com/) (Llama 3 70B)
+- **Vector DB**: [Qdrant Cloud](https://qdrant.tech/)
+- **Embeddings**: HuggingFace (`intfloat/multilingual-e5-large`)
+- **Scraping**: [Scrapy](https://scrapy.org/)
+- **Document Processing**: `PyPDF2`, `python-docx`, `BeautifulSoup`
 
 ## Prerequisites
 
 - Python 3.8+
 - Miniconda or Anaconda
+- WSL2
+- Ubuntu 24.04.1 LTS
+
+## Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/MohamedSaeed130/Telecom-Egypt-mini-chatbot.git
+   cd Telecom-Egypt-mini-chatbot
+   cd src
+   ```
+
+2. **Set up a Virtual Environment (Optional but Recommended)**
+   ```bash
+   conda create -n env_name
+   conda activate env_name
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Configuration
+Ensure you have the necessary API keys. The project is currently configured to use embedded keys for demonstration, but for production, set the following environment variables in a `.env` file:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+QDRANT_URL=your_qdrant_url
+QDRANT_API_KEY=your_qdrant_api_key
+```
+
+## Usage
+
+### 1. Run main setup
+Launch the main user interface:
+```bash
+python main_setup.py
+```
+
+### 2. Run the Chatbot Application
+Launch the main user interface:
+```bash
+streamlit run streamlit_app.py
+```
+This will open the application in your browser (usually at `http://localhost:8501`).
+
 
 ## Project Structure
 
 ```
 Telecom-Egypt-mini-chatbot/
-│
-├── app.py                      # Main Streamlit application
-├── setup.py                    # Setup and initialization script
-├── requirements.txt            # Python dependencies
-├── .env                        # Environment variables (create this)
-│
-├── scraper.py                  # Web scraping module
-├── document_processor.py       # Document processing (PDF, DOCX, etc.)
-├── vector_store.py            # Vector database management
-├── rag_engine.py              # RAG pipeline and LLM integration
-│
-├── chroma_db/                 # Vector database storage (auto-created)
-└── telecom_egypt_data.json    # Scraped website data (auto-created)
+├── src/
+│   ├── data_chunking/          # Text chunking logic
+│   ├── data_extraction/        # Scrapy and Document processing
+│   ├── data_indexer/           # Logic to index data into Qdrant
+│   ├── qdrant_vector_store_DB/ # Qdrant client manager
+│   ├── streamlit_app.py        # Main Streamlit Application UI
+│   ├── main_setup.py           # Script for setup and scraping pipeline
+│   ├── requirements.txt        # Python dependencies
+│   └── qdrant_db/              # Local fallback for vector store
+├── LICENSE                     # License file
+└── README.md                   # Project Documentation
 ```
 
-
-export PS1="\[\033[01;32m\]\u@\h:\w\n\[\033[00m\]\$ "
