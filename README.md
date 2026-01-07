@@ -12,7 +12,7 @@ A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answer
 
 ## Tech Stack
 - **Frontend**: [Streamlit](https://streamlit.io/)
-- **LLM**: [Groq API](https://groq.com/) (Llama 3 70B)
+- **LLM**: [Groq API](https://groq.com/) (llama-3.3-70b-versatile)
 - **Vector DB**: [Qdrant Cloud](https://qdrant.tech/)
 - **Embeddings**: HuggingFace (`intfloat/multilingual-e5-large`)
 - **Scraping**: [Scrapy](https://scrapy.org/)
