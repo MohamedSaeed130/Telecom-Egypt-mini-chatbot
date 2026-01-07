@@ -17,7 +17,7 @@ def recursive_chunk(text, max_size: int=512, level: int=0):
     # 4. Words (Spaces)
     separators = [
     r'\n{2,}',                      # Paragraphs
-    r'(?<=[.!؟!?])',             # Sentences (AR + EN)
+    r'(?<=[!؟!?])',               # Sentences (AR + EN)
     r'(?<=[،,؛;:])',              # Clauses
     r'\n\s*[-•*]',               # Bullet points
     r'\s+'                          # Whitespace fallback
