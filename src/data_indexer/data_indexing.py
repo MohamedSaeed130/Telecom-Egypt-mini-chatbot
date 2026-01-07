@@ -7,10 +7,7 @@ from data_chunking.text_chunker import recursive_chunk
 from qdrant_vector_store_DB.vector_store_mange import QdrantVectorStoreManager
 
 class DocumentIndexer:
-    """
-    Index documents from various sources into vector store
-    """
-    
+
     def __init__(self, DB_manager: QdrantVectorStoreManager):
         self.DB_manager = DB_manager
     
@@ -22,7 +19,7 @@ class DocumentIndexer:
         except:
             return "en"
     
-    def index_scraped_data(self, json_file: str):
+    def index_scraped_data(self, json_file: str,chunk_size: int=512):
 
         print(f"Loading scraped data from {json_file}...")
         
@@ -34,7 +31,7 @@ class DocumentIndexer:
         
         for page in data:
             # Chunk the content
-            chunks = recursive_chunk(page['content'])
+            chunks = recursive_chunk(page['content'], max_size=chunk_size)
             
             for chunk_idx, chunk in enumerate(chunks):
                 documents.append({
@@ -59,7 +56,7 @@ class DocumentIndexer:
         return documents
 
     
-    def index_uploaded_documents(self, json_file: str):
+    def index_uploaded_documents(self, json_file: str, chunk_size: int=512):
         """Index user-uploaded documents"""
         with open(json_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -68,7 +65,7 @@ class DocumentIndexer:
         doc_id = self.DB_manager.collection.count()
           
         for page in data:
-            chunks = recursive_chunk(page['content'])
+            chunks = recursive_chunk(page['content'], max_size=chunk_size)
             
             for chunk_idx, chunk in enumerate(chunks):
                 documents.append({
