@@ -20,5 +20,6 @@ qdrant-client==1.16.2
 grok==6.1
 sentence-transformers==5.2.0
 groq==1.0.0
+streamlit==1.52.2
 
 
