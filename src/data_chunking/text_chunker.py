@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-def recursive_chunk(text, max_size, level=0):
+def recursive_chunk(text, max_size: int=512, level: int=0):
     text = text.strip()
     if not text:
         return []
