@@ -219,7 +219,7 @@ class QdrantVectorStoreManager:
     def generate_response(self, query: str, context_docs: List[Dict], 
                          language: str = 'en',
                          max_tokens: int = 1000,
-                         temperature: float = 0.1) -> str:
+                         temperature: float = 0.2) -> str:
         """
         Generate response using Groq Llama 3 70B
         
