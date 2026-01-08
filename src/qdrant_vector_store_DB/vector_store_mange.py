@@ -113,7 +113,7 @@ class QdrantVectorStoreManager:
         )
         return embeddings.tolist()
     
-    def add_documents(self, documents: List[Dict], batch_size: int = 50):
+    def add_documents(self, documents: List[Dict], batch_size: int = 128):
         """
         Add documents to vector store
         documents: List of dicts with 'content', 'metadata', and 'id' keys

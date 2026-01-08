@@ -19,7 +19,7 @@ class DocumentIndexer:
         except:
             return "en"
     
-    def index_scraped_data(self, json_file: str,chunk_size: int=512):
+    def index_scraped_data(self, json_file: str,chunk_size: int=512, overlap: int=128, batch_size: int=128):
 
         print(f"Loading scraped data from {json_file}...")
         
@@ -31,7 +31,7 @@ class DocumentIndexer:
         
         for page in data:
             # Chunk the content
-            chunks = recursive_chunk(page['content'], max_size=chunk_size)
+            chunks = recursive_chunk(page['content'], max_size=chunk_size, overlap=overlap)
             
             for chunk_idx, chunk in enumerate(chunks):
                 documents.append({
@@ -49,14 +49,14 @@ class DocumentIndexer:
                 doc_id += 1
 
             try:
-                self.DB_manager.add_documents(documents)
+                self.DB_manager.add_documents(documents, batch_size=batch_size)
             except Exception as e:
                 return f"Error adding documents: {e}"
 
         return documents
 
     
-    def index_uploaded_documents(self, json_file: str, chunk_size: int=512):
+    def index_uploaded_documents(self, json_file: str, chunk_size: int=512, overlap: int=128, batch_size: int=128):
         """Index user-uploaded documents"""
         with open(json_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -65,7 +65,7 @@ class DocumentIndexer:
         doc_id = self.DB_manager.count(collection_name=self.DB_manager.collection_name)
           
         for page in data:
-            chunks = recursive_chunk(page['content'], max_size=chunk_size)
+            chunks = recursive_chunk(page['content'], max_size=chunk_size, overlap=overlap)
             
             for chunk_idx, chunk in enumerate(chunks):
                 documents.append({
@@ -83,7 +83,7 @@ class DocumentIndexer:
                 })
                 doc_id += 1
         try:
-            self.DB_manager.add_documents(documents)
+            self.DB_manager.add_documents(documents, batch_size=batch_size)
         except Exception as e:
             return f"Error adding documents: {e}"
         return documents
