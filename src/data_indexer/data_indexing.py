@@ -32,21 +32,23 @@ class DocumentIndexer:
         for page in data:
             # Chunk the content
             chunks = recursive_chunk(page['content'], max_size=chunk_size, overlap=overlap)
-            
-            for chunk_idx, chunk in enumerate(chunks):
-                documents.append({
-                    'id': f"web_{doc_id}",
-                    'content': chunk,
-                    'metadata': {
-                        'source': 'web',
-                        'language': self.detect_language(chunk),
-                        'url': page['url'],
-                        'title': page['title'],
-                        'chunk_index': chunk_idx,
-                        'total_chunks': len(chunks)
-                    }
-                })
-                doc_id += 1
+            chunk_idx=0 
+            for chunk in (chunks):
+                if(len(chunk) > 10):
+                    documents.append({
+                        'id': f"web_{doc_id}",
+                        'content': chunk,
+                        'metadata': {
+                            'source': 'web',
+                            'language': self.detect_language(chunk),
+                            'url': page['url'],
+                            'title': page['title'],
+                            'chunk_index': chunk_idx,
+                            'total_chunks': len(chunks)
+                        }
+                    })
+                    doc_id += 1
+                    chunk_idx += 1
 
             try:
                 self.DB_manager.add_documents(documents, batch_size=batch_size)
@@ -63,25 +65,28 @@ class DocumentIndexer:
 
         documents = []
         doc_id = self.DB_manager.count(collection_name=self.DB_manager.collection_name)
-          
+         
         for page in data:
             chunks = recursive_chunk(page['content'], max_size=chunk_size, overlap=overlap)
-            
-            for chunk_idx, chunk in enumerate(chunks):
-                documents.append({
-                    'id': f"upload_{doc_id}",
-                    'content': chunk,
-                    'metadata': {
-                        'source': 'upload',
-                        'language': self.detect_language(chunk),
-                        'page_number':page['page_number'],
-                        'filename': page['filename'],
-                        'file_type': page['file_type'],
-                        'chunk_index': chunk_idx,
-                        'total_chunks': len(chunks)
-                    }
-                })
-                doc_id += 1
+            chunk_idx=0 
+            for chunk in (chunks):
+                
+                if(len(chunk) > 10):
+                    documents.append({
+                        'id': f"upload_{doc_id}",
+                        'content': chunk,
+                        'metadata': {
+                            'source': 'upload',
+                            'language': self.detect_language(chunk),
+                            'page_number':page['page_number'],
+                            'filename': page['filename'],
+                            'file_type': page['file_type'],
+                            'chunk_index': chunk_idx,
+                            'total_chunks': len(chunks)
+                        }
+                    })
+                    doc_id += 1
+                    chunk_idx += 1
         try:
             self.DB_manager.add_documents(documents, batch_size=batch_size)
         except Exception as e:

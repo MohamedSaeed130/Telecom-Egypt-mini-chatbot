@@ -308,6 +308,16 @@ Answer:"""
             error_msg = "حدث خطأ في معالجة طلبك" if language == 'ar' else "An error occurred processing your request"
             return f"{error_msg}\nError: {str(e)}"
     
+    def count(self, collection_name: Optional[str] = None) -> int:
+        """Count documents in collection"""
+        target_collection = collection_name or self.collection_name
+        try:
+            collection_info = self.client.get_collection(target_collection)
+            return collection_info.points_count
+        except Exception as e:
+            print(f"Error counting documents: {e}")
+            return 0
+    
     
 
     def get_collection_stats(self) -> Dict:
