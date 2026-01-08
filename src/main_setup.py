@@ -43,8 +43,8 @@ def setup():
 
     indexer=DocumentIndexer(qdrant_DB)
 
-    web_scraping(max_pages=300, base_url="https://te.eg",output_file_name="telecom_egypt_web_scraping.json")
-    _=indexer.index_scraped_data("telecom_egypt_web_scraping.json",chunk_size=512)
+    web_scraping(max_pages=500, base_url="https://te.eg",output_file_name="telecom_egypt_web_scraping.json")
+    _=indexer.index_scraped_data("telecom_egypt_web_scraping.json",chunk_size=512, overlap=128, batch_size=256)
     stats=qdrant_DB.get_collection_stats()
     print(stats)
     
