@@ -3,7 +3,7 @@
 A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answers customer questions using the official website as the primary knowledge base.
 
 ## Demo
-## 📹 [Project Demo](https://drive.google.com/drive/folders/1yS33gQVlmne7FM2Gdzw2jianUOvzjOk9?usp=sharing)
+## 📹 [Project Demo](https://drive.google.com/file/d/17S9ZSUy5_YWJ3f8Ag6FAwryOKCMahAs1/view?usp=drive_link)
 
 ## Key Features
 
