@@ -24,8 +24,8 @@ class QdrantVectorStoreManager:
                  embedding_model_name: str = "intfloat/multilingual-e5-large",
                  use_cloud: bool = False,
                  qdrant_url: Optional[str] = None,
-                 qdrant_api_key: Optional[str] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.g6gizwnNagX1qf8pTgca4xsfDFQm8W5dT-gsbEjd0fM",
-                 groq_api_key: Optional[str] ="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"):
+                 qdrant_api_key: Optional[str] = None,
+                 groq_api_key: Optional[str] = None):
 
 
         self.collection_name = collection_name

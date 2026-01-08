@@ -108,9 +108,9 @@ st.markdown("""
 @st.cache_resource
 def get_vector_store():
     # Credentials
-    GROQ_API_KEY = "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"
-    QDRANT_URL = "https://69176c33-c757-41a8-ab60-d18bfca81717.europe-west3-0.gcp.cloud.qdrant.io"
-    QDRANT_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.g6gizwnNagX1qf8pTgca4xsfDFQm8W5dT-gsbEjd0fM"
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    QDRANT_URL = os.getenv("QDRANT_URL")
+    QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
     
     try:
         store = QdrantVectorStoreManager(

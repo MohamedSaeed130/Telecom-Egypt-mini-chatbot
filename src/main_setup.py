@@ -32,13 +32,13 @@ def upload_docs_processing(file_paths: List[str], output_path: str):
 
 def setup():
     qdrant_DB = QdrantVectorStoreManager(
-    groq_api_key="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",
+    groq_api_key=os.getenv("GROQ_API_KEY"),
     collection_name="telecom_egypt_VDB",
     persist_directory="qdrant_db",
     embedding_model_name="intfloat/multilingual-e5-large",
     use_cloud=True,
-    qdrant_url="https://69176c33-c757-41a8-ab60-d18bfca81717.europe-west3-0.gcp.cloud.qdrant.io",
-    qdrant_api_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.g6gizwnNagX1qf8pTgca4xsfDFQm8W5dT-gsbEjd0fM"
+    qdrant_url=os.getenv("QDRANT_URL"),
+    qdrant_api_key=os.getenv("QDRANT_API_KEY")
     )
 
     indexer=DocumentIndexer(qdrant_DB)
