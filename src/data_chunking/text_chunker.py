@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-def recursive_chunk(text, max_size: int=512, level: int=0):
+def recursive_chunk(text, max_size: int=512, level: int=0, overlap: int=128):
     text = text.strip()
     if not text:
         return []
@@ -18,14 +18,11 @@ def recursive_chunk(text, max_size: int=512, level: int=0):
     separators = [
     r'\n{2,}',                      # Paragraphs
     r'(?<=[!؟!?])',               # Sentences (AR + EN)
-    r'(?<=[،,؛;:])',              # Clauses
-    r'\n\s*[-•*]',               # Bullet points
-    r'\s+'                          # Whitespace fallback
     ]
 
     # If we ran out of separators, force split by size
     if level >= len(separators):
-        return [text[i:i + max_size] for i in range(0, len(text), max_size)]
+        return [text[i*(i - overlap):i + max_size] for i in range(0, len(text), max_size)]
 
     separator = separators[level]
     
