@@ -49,21 +49,21 @@ class QdrantVectorStoreManager:
             raise ValueError("GROQ_API_KEY is required. Set it in environment or pass as argument.")
         
         self.groq_client = Groq(api_key=groq_key)
-        print("✓ Groq client initialized (Llama 3 70B)")
+        print("Groq client initialized (Llama 3 70B)")
         
         # Load HuggingFace embedding model
         print(f"Loading embedding model: {embedding_model_name}")
-        print("⚠️  First time download may take several minutes (~2 GB model)")
+        print("First time download may take several minutes (~2 GB model)")
         
         self.embedding_model = SentenceTransformer(embedding_model_name)
         self.vector_size = self.embedding_model.get_sentence_embedding_dimension()
         
-        print(f"✓ Embedding model loaded (dimension: {self.vector_size})")
+        print(f"Embedding model loaded (dimension: {self.vector_size})")
         
         # Create or get collection
         self._init_collection()
         
-        print(f"✓ Vector store initialized. Collection: {collection_name}")
+        print(f"Vector store initialized. Collection: {collection_name}")
     
     def detect_language(self, text: str) -> str:
         """Detect language of text"""
@@ -299,12 +299,12 @@ Answer:"""
             response_time = time.time() - start_time
             response_text = chat_completion.choices[0].message.content
             
-            print(f"✓ Groq response generated in {response_time:.2f}s")
+            print(f"Groq response generated in {response_time:.2f}s")
             
             return response_text
             
         except Exception as e:
-            print(f"❌ Groq API error: {e}")
+            print(f"Groq API error: {e}")
             error_msg = "حدث خطأ في معالجة طلبك" if language == 'ar' else "An error occurred processing your request"
             return f"{error_msg}\nError: {str(e)}"
     

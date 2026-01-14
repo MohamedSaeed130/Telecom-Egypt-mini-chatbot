@@ -5,13 +5,15 @@ import time
 import tempfile
 import shutil
 from langdetect import detect
-
-# Add src to path to import local modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from dotenv import load_dotenv
 
 from qdrant_vector_store_DB.vector_store_mange import QdrantVectorStoreManager
 from data_extraction.data_extraction_docs.docs_processing import TelecomEgyptDocumentProcessor
 from data_indexer.data_indexing import DocumentIndexer
+
+# Add src to path to import local modules
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv()
 
 # --- Page Config ---
 st.set_page_config(

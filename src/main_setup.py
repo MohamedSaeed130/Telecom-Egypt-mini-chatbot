@@ -8,6 +8,7 @@ from qdrant_vector_store_DB.vector_store_mange import QdrantVectorStoreManager
 import os
 import json
 from typing import List
+from dotenv import load_dotenv
 
 
 
@@ -52,5 +53,6 @@ def setup():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     setup()
    
