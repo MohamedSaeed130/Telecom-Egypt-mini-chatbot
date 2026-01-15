@@ -4,6 +4,8 @@ A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answer
 
 ## Demo
 ## 📹 [Project Demo](https://drive.google.com/file/d/17S9ZSUy5_YWJ3f8Ag6FAwryOKCMahAs1/view?usp=drive_link)
+## Presentation
+# [Project Presentation](https://docs.google.com/presentation/d/1IO0PKryle-aG4T-NFOhgu5t2ec8QYF_Q/edit?usp=drive_link&ouid=108481101390315748319&rtpof=true&sd=true)
 
 ## Key Features
 
