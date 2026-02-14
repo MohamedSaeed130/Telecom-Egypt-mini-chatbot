@@ -19,9 +19,10 @@ googletrans==4.0.2
 
 qdrant-client==1.16.2
 grok==6.1
-sentence-transformers==5.2.0
+sentence-transformers==3.0.1
 groq==1.0.0
 streamlit==1.52.2
+fastembed==0.5.1
 
 
 

@@ -34,7 +34,7 @@ def upload_docs_processing(file_paths: List[str], output_path: str):
 def setup():
     qdrant_DB = QdrantVectorStoreManager(
     groq_api_key=os.getenv("GROQ_API_KEY"),
-    collection_name="telecom_egypt_VDB",
+    collection_name="telecom_egypt_VDB_2",
     persist_directory="qdrant_db",
     embedding_model_name="intfloat/multilingual-e5-large",
     use_cloud=True,
@@ -44,8 +44,8 @@ def setup():
 
     indexer=DocumentIndexer(qdrant_DB)
 
-    web_scraping(max_pages=500, base_url="https://te.eg",output_file_name="telecom_egypt_web_scraping.json")
-    _=indexer.index_scraped_data("telecom_egypt_web_scraping.json",chunk_size=512, overlap=128, batch_size=256)
+    #web_scraping(max_pages=500, base_url="https://te.eg",output_file_name="telecom_egypt_web_scraping.json")
+    _=indexer.index_scraped_data("final_data.json",chunk_size=512, overlap=128, batch_size=128)
     stats=qdrant_DB.get_collection_stats()
     print(stats)
     
