@@ -3,7 +3,7 @@ Vector Store Manager with Groq LLM and HuggingFace Embeddings
 Uses Llama 3 70B via Groq and multilingual-e5-large embeddings
 """
 
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
 from qdrant_client.models import (
     Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue,
     SparseVectorParams, SparseIndexParams, SparseVector, Prefetch, Fusion, FusionQuery
@@ -280,7 +280,7 @@ class QdrantVectorStoreManager:
         search_results = self.client.query_points(
             collection_name=self.collection_name,
             prefetch=prefetch,
-            query=FusionQuery(fusion=Fusion.RRF),
+            query=models.RrfQuery(rrf=models.Rrf(k=60)),
             limit=n_results
         )
         
@@ -302,7 +302,7 @@ class QdrantVectorStoreManager:
     def generate_response(self, query: str, context_docs: List[Dict], 
                          language: str = 'en',
                          max_tokens: int = 1000,
-                         temperature: float = 0.2) -> str:
+                         temperature: float = 0.3) -> str:
         """
         Generate response using Groq Llama 3 70B
         
@@ -407,11 +407,21 @@ Answer:"""
         """Get statistics about the collection"""
         collection_info = self.client.get_collection(self.collection_name)
         
+        vectors_config = collection_info.config.params.vectors
+        
+        # Handle both single vector and named vectors (multivector) configurations
+        if isinstance(vectors_config, dict):
+            # For named vectors, use the 'dense' vector config if available, otherwise the first one
+            vector_params = vectors_config.get('dense', next(iter(vectors_config.values())))
+        else:
+            # Single vector configuration
+            vector_params = vectors_config
+
         return {
             'collection_name': self.collection_name,
             'total_documents': collection_info.points_count,
-            'vector_size': collection_info.config.params.vectors.size,
-            'distance_metric': collection_info.config.params.vectors.distance,
+            'vector_size': vector_params.size,
+            'distance_metric': vector_params.distance,
             'persist_directory': self.persist_directory,
             'llm': 'Groq Llama 3 70B',
             'embedding_model': 'multilingual-e5-large'
