@@ -12,6 +12,8 @@ first_try_with_telecom_scrapy_modified .mp4
 debug_imports.py
 verify_hybrid.py
 test_qdrant_db/
+main_test.py
+chatbot_demo_original.mp4
 
 #venv
 .venv/
@@ -19,6 +21,7 @@ test_qdrant_db/
 chatbot_demo.mp4
 Nitro.png
 Screenshot 2026-01-13 225357.png
+
 
 
 # Distribution / packaging

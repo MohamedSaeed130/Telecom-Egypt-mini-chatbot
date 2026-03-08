@@ -8,7 +8,7 @@ from qdrant_client.models import (
     Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue,
     SparseVectorParams, SparseIndexParams, SparseVector, Prefetch, Fusion, FusionQuery
 )
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 from fastembed import SparseTextEmbedding
 from typing import List, Dict, Optional, Any, Union
 import numpy as np
@@ -26,6 +26,7 @@ class QdrantVectorStoreManager:
                  collection_name: str = "telecom_egypt_VDB",
                  persist_directory: str = "qdrant_db",
                  embedding_model_name: str = "intfloat/multilingual-e5-large",
+                 reranker_model_name: str = "amberoad/bert-multilingual-passage-reranking-msmarco",
                  use_cloud: bool = False,
                  qdrant_url: Optional[str] = None,
                  qdrant_api_key: Optional[str] = None,
@@ -72,6 +73,11 @@ class QdrantVectorStoreManager:
         print("Loading sparse embedding model: Qdrant/bm25")
         self.sparse_embedding_model = SparseTextEmbedding(model_name="Qdrant/bm25")
         print("Sparse embedding model loaded")
+
+        # Load Cross-Encoder Reranker Model
+        print(f"Loading reranker model: {reranker_model_name}")
+        self.reranker_model = CrossEncoder(reranker_model_name, device=device)
+        print("Reranker model loaded")
         
         # Create or get collection
         self._init_collection()
@@ -220,13 +226,50 @@ class QdrantVectorStoreManager:
         
         print(f"✓ Successfully added {total_docs} documents")
     
+    def rerank(self, query: str, results: List[Dict], top_k: int = 5) -> List[Dict]:
+        """
+        Rerank search results using a cross-encoder model.
+        Scores each (query, document) pair jointly for more accurate relevance.
+        
+        Args:
+            query: The user's search query
+            results: List of result dicts from hybrid search (must have 'content' key)
+            top_k: Number of top results to return after reranking
+        
+        Returns:
+            Reranked list of result dicts, trimmed to top_k
+        """
+        if not results:
+            return results
+        
+        # Build query-document pairs for the cross-encoder
+        pairs = [[query, res['content']] for res in results]
+        
+        # Score all pairs
+        scores = self.reranker_model.predict(pairs)
+        
+        # Attach reranker scores and sort descending
+        for i, res in enumerate(results):
+            res['reranker_score'] = float(scores[i])
+        
+        reranked = sorted(results, key=lambda x: x['reranker_score'], reverse=True)
+        
+        return reranked[:top_k]
+
     def search(self, 
                query: str, 
                n_results: int = 5,
-               filter_metadata: Optional[Dict] = None) -> List[Dict]:
+               filter_metadata: Optional[Dict] = None,
+               use_reranker: bool = True) -> List[Dict]:
         """
-        Search for similar documents using Hybrid Retrieval (RRF)
+        Search for similar documents using Hybrid Retrieval (RRF) + Cross-Encoder Reranking.
+        
+        When use_reranker=True (default), over-fetches 2× candidates from the hybrid
+        stage, then reranks with the cross-encoder and returns the top n_results.
         """
+        # Determine how many candidates to fetch from the hybrid stage
+        fetch_limit = n_results * 2 if use_reranker else n_results
+        
         # 1. Generate Dense Embedding
         # For E5 models, prefix query with 'query: '
         prefixed_query = f"query: {query}"
@@ -265,13 +308,13 @@ class QdrantVectorStoreManager:
             Prefetch(
                 query=query_dense_embedding,
                 using="dense",
-                limit=n_results,
+                limit=fetch_limit,
                 filter=query_filter
             ),
             Prefetch(
                 query=qdrant_sparse_vector,
                 using="bm25",
-                limit=n_results,
+                limit=fetch_limit,
                 filter=query_filter
             ),
         ]
@@ -281,7 +324,7 @@ class QdrantVectorStoreManager:
             collection_name=self.collection_name,
             prefetch=prefetch,
             query=models.RrfQuery(rrf=models.Rrf(k=60)),
-            limit=n_results
+            limit=fetch_limit
         )
         
         # Format results
@@ -296,6 +339,10 @@ class QdrantVectorStoreManager:
                 },
                 'score': result.score,
             })
+        
+        # 5. Rerank with cross-encoder if enabled
+        if use_reranker and formatted_results:
+            formatted_results = self.rerank(query, formatted_results, top_k=n_results)
         
         return formatted_results
     
