@@ -12,6 +12,7 @@ A production-ready RAG-powered intelligent chatbot for Telecom Egypt that answer
 - **Multi-lingual Support**: Handles Arabic (Modern Standard & Egyptian dialect) and English
 - **RAG-Powered**: Uses Retrieval Augmented Generation for accurate, grounded responses
 - **Document Upload**: Supports PDF, DOCX, TXT, HTML, and images (with OCR)
+- **Hybrid Retrieval**: Combined (Dense + Sparse[BM25]) search.
 - **Source Citations**: All answers include references to original sources
 - **Web-Based Interface**: Professional Streamlit chat interface
 
