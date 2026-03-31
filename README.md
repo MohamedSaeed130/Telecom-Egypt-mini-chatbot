@@ -64,8 +64,6 @@ Telecom-Egypt-mini-chatbot/
    ```bash
    conda create -n env_name
    conda activate env_name
-   python -m venv venv
-   source venv/bin/activate
    ```
 
 3. **Install Dependencies**
