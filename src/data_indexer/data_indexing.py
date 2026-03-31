@@ -31,7 +31,7 @@ class DocumentIndexer:
         
         for page in data:
             # Chunk the content
-            chunks = recursive_chunk(page['content'], max_size=chunk_size, overlap=overlap)
+            chunks = recursive_chunk(page['page_related_content'], max_size=chunk_size, overlap=overlap)
             chunk_idx=0 
             for chunk in (chunks):
                 if(len(chunk) > 10):
@@ -41,8 +41,8 @@ class DocumentIndexer:
                         'metadata': {
                             'source': 'web',
                             'language': self.detect_language(chunk),
-                            'url': page['url'],
-                            'title': page['title'],
+                            'url': page['page_link'],
+                            'title': page['page_title'],
                             'chunk_index': chunk_idx,
                             'total_chunks': len(chunks)
                         }

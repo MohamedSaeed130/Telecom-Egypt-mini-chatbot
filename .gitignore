@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+ceo_all.png
+ceo.png
+first_try_with_telecom_scrapy_modified .mp4
+debug_imports.py
+verify_hybrid.py
+test_qdrant_db/
+
 #venv
 .venv/
 .vscode/

@@ -4,9 +4,13 @@ Uses Llama 3 70B via Groq and multilingual-e5-large embeddings
 """
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
+from qdrant_client.models import (
+    Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue,
+    SparseVectorParams, SparseIndexParams, SparseVector, Prefetch, Fusion, FusionQuery
+)
 from sentence_transformers import SentenceTransformer
-from typing import List, Dict, Optional
+from fastembed import SparseTextEmbedding
+from typing import List, Dict, Optional, Any, Union
 import numpy as np
 from langdetect import detect
 import json
@@ -55,10 +59,19 @@ class QdrantVectorStoreManager:
         print(f"Loading embedding model: {embedding_model_name}")
         print("First time download may take several minutes (~2 GB model)")
         
-        self.embedding_model = SentenceTransformer(embedding_model_name)
+        import torch
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print(f"Using device: {device}")
+        
+        self.embedding_model = SentenceTransformer(embedding_model_name, device=device)
         self.vector_size = self.embedding_model.get_sentence_embedding_dimension()
         
         print(f"Embedding model loaded (dimension: {self.vector_size})")
+
+        # Load Sparse Embedding Model (BM25)
+        print("Loading sparse embedding model: Qdrant/bm25")
+        self.sparse_embedding_model = SparseTextEmbedding(model_name="Qdrant/bm25")
+        print("Sparse embedding model loaded")
         
         # Create or get collection
         self._init_collection()
@@ -74,28 +87,57 @@ class QdrantVectorStoreManager:
             return "en"
 
     def _init_collection(self):
-        """Initialize or get existing collection"""
+        """Initialize or get existing collection. Recreates if config mismatches."""
         collections = self.client.get_collections().collections
         collection_names = [col.name for col in collections]
         
-        if self.collection_name not in collection_names:
+        should_recreate = False
+        if self.collection_name in collection_names:
+            # Check if existing collection has compatible config (named vectors + sparse)
+            collection_info = self.client.get_collection(self.collection_name)
+            vectors_config = collection_info.config.params.vectors
+            sparse_vectors_config = collection_info.config.params.sparse_vectors
+            
+            # Check if 'dense' vector exists and 'bm25' sparse vector exists
+            has_dense = isinstance(vectors_config, dict) and 'dense' in vectors_config
+            has_sparse = sparse_vectors_config is not None and 'bm25' in sparse_vectors_config
+            
+            if not (has_dense and has_sparse):
+                print(f"Collection '{self.collection_name}' exists but has incompatible config. Recreating...")
+                should_recreate = True
+        else:
+            should_recreate = True
+            
+        if should_recreate:
+            if self.collection_name in collection_names:
+                self.client.delete_collection(self.collection_name)
+                
             print(f"Creating new collection: {self.collection_name}")
             self.client.create_collection(
                 collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=self.vector_size,  # 1024 for multilingual-e5-large
-                    distance=Distance.COSINE
-                )
+                vectors_config={
+                    "dense": VectorParams(
+                        size=self.vector_size,
+                        distance=Distance.COSINE
+                    )
+                },
+                sparse_vectors_config={
+                    "bm25": SparseVectorParams(
+                        index=SparseIndexParams(
+                            on_disk=False,
+                        )
+                    )
+                }
+            )
+            
+            # Ensure payload index exists for 'source' field (required for filtering)
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="source",
+                field_schema="keyword",
             )
         else:
-            print(f"Collection '{self.collection_name}' already exists")
-            
-        # Ensure payload index exists for 'source' field (required for filtering)
-        self.client.create_payload_index(
-            collection_name=self.collection_name,
-            field_name="source",
-            field_schema="keyword",
-        )
+            print(f"Collection '{self.collection_name}' already exists with correct config")
     
     def generate_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
@@ -113,13 +155,13 @@ class QdrantVectorStoreManager:
         )
         return embeddings.tolist()
     
-    def add_documents(self, documents: List[Dict], batch_size: int = 128):
+    def add_documents(self, documents: List[Dict], batch_size: int = 32):
         """
-        Add documents to vector store
+        Add documents to vector store with dense and sparse vectors
         documents: List of dicts with 'content', 'metadata', and 'id' keys
         """
         total_docs = len(documents)
-        print(f"Adding {total_docs} documents to vector store...")
+        print(f"Adding {total_docs} documents to vector store (Dense + Sparse)...")
         
         for i in range(0, total_docs, batch_size):
             batch = documents[i:i + batch_size]
@@ -129,16 +171,37 @@ class QdrantVectorStoreManager:
             texts = [doc['content'] for doc in batch]
             metadatas = [doc.get('metadata', {}) for doc in batch]
             
-            # Generate embeddings
-            embeddings = self.generate_embeddings(texts)
+            # Generate Dense embeddings
+            # For E5 models, prefix with 'passage: ' for documents
+            prefixed_texts = [f"passage: {text}" for text in texts]
+            dense_embeddings = self.embedding_model.encode(
+                prefixed_texts,
+                show_progress_bar=False,
+                normalize_embeddings=True
+            ).tolist()
+            
+            # Generate Sparse embeddings (BM25)
+            # fastembed returns generator of SparseEmbedding
+            sparse_embeddings_gen = self.sparse_embedding_model.embed(texts)
+            sparse_embeddings = list(sparse_embeddings_gen)
             
             # Create points for Qdrant
             points = []
-            for j, (doc_id, text, embedding, metadata) in enumerate(zip(ids, texts, embeddings, metadatas)):
+            for j, (doc_id, text, dense_emb, sparse_emb, metadata) in enumerate(zip(ids, texts, dense_embeddings, sparse_embeddings, metadatas)):
+                # Convert fastembed SparseEmbedding to Qdrant SparseVector
+                # fastembed SparseEmbedding has .indices and .values
+                qdrant_sparse_vector = SparseVector(
+                    indices=sparse_emb.indices.tolist(),
+                    values=sparse_emb.values.tolist()
+                )
+                
                 points.append(
                     PointStruct(
                         id=str(uuid4()),
-                        vector=embedding,
+                        vector={
+                            "dense": dense_emb,
+                            "bm25": qdrant_sparse_vector
+                        },
                         payload={
                             'doc_id': doc_id,
                             'content': text,
@@ -162,23 +225,27 @@ class QdrantVectorStoreManager:
                n_results: int = 5,
                filter_metadata: Optional[Dict] = None) -> List[Dict]:
         """
-        Search for similar documents
-        
-        Args:
-            query: Search query
-            n_results: Number of results to return
-            filter_metadata: Optional filter (e.g., {'source': 'web'})
+        Search for similar documents using Hybrid Retrieval (RRF)
         """
+        # 1. Generate Dense Embedding
         # For E5 models, prefix query with 'query: '
         prefixed_query = f"query: {query}"
-        
-        # Generate query embedding
-        query_embedding = self.embedding_model.encode(
+        query_dense_embedding = self.embedding_model.encode(
             prefixed_query,
             normalize_embeddings=True
         ).tolist()
         
-        # Build filter if provided
+        # 2. Generate Sparse Embedding (BM25)
+        # fastembed returns generator
+        query_sparse_embedding_gen = self.sparse_embedding_model.embed([query])
+        query_sparse_embedding = list(query_sparse_embedding_gen)[0]
+        
+        qdrant_sparse_vector = SparseVector(
+            indices=query_sparse_embedding.indices.tolist(),
+            values=query_sparse_embedding.values.tolist()
+        )
+        
+        # 3. Build filter if provided
         query_filter = None
         if filter_metadata:
             conditions = []
@@ -192,12 +259,29 @@ class QdrantVectorStoreManager:
             if conditions:
                 query_filter = Filter(must=conditions)
         
-        # Search
+        # 4. Perform Hybrid Search with RRF Fusion
+        # Define prefetches for dense and sparse
+        prefetch = [
+            Prefetch(
+                query=query_dense_embedding,
+                using="dense",
+                limit=n_results,
+                filter=query_filter
+            ),
+            Prefetch(
+                query=qdrant_sparse_vector,
+                using="bm25",
+                limit=n_results,
+                filter=query_filter
+            ),
+        ]
+        
+        # Execute query with fusion
         search_results = self.client.query_points(
             collection_name=self.collection_name,
-            query=query_embedding,
-            limit=n_results,
-            query_filter=query_filter
+            prefetch=prefetch,
+            query=FusionQuery(fusion=Fusion.RRF),
+            limit=n_results
         )
         
         # Format results
@@ -211,7 +295,6 @@ class QdrantVectorStoreManager:
                     if k not in ['doc_id', 'content']
                 },
                 'score': result.score,
-                'distance': 1 - result.score
             })
         
         return formatted_results
