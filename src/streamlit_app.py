@@ -117,7 +117,7 @@ def get_vector_store():
     try:
         store = QdrantVectorStoreManager(
             groq_api_key=GROQ_API_KEY,
-            collection_name="telecom_egypt_VDB_2",
+            collection_name="telecom_egypt_VDB",
             embedding_model_name="intfloat/multilingual-e5-large",
             use_cloud=True, 
             qdrant_url=QDRANT_URL,
